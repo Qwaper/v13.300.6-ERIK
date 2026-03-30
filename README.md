@@ -20,8 +20,11 @@ An archive of Erik Royale for Clash Royale v13.300.6
 
 ## Who Made it?:
  * ChatGPT
+ * Claude
+ * Deepseek
+ * (possibly) Gemini
 
-## Who Made it?:
+## Who Made the prompts?:
 * Erik Reis
 
 ## Who Leaked it?:
