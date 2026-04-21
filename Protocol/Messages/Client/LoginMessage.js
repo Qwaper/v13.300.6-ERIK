@@ -1,5 +1,4 @@
 const PiranhaMessage = require("../../PiranhaMessage");
-const LoginFailedMessage = require("../Server/LoginFailedMessage");
 const LoginOkMessage = require("../Server/LoginOkMessage");
 const OwnHomeDataMessage = require("../Server/OwnHomeDataMessage");
 let { generateToken } = require("../../../Utils/TokenGenerator");
@@ -31,6 +30,7 @@ class LoginMessage extends PiranhaMessage {
     if (this.data.Content === 377) {
       this.client.flagged = true;
     }
+
     let playerId = { high: this.data.HighID, low: this.data.LowID };
     let databaseuser = global.database.findOneBy({ id: playerId });
 
@@ -47,30 +47,28 @@ class LoginMessage extends PiranhaMessage {
           26000007,
         ],
       });
-    } else {
-      if (!databaseuser || databaseuser.token !== this.data.Token) {
-        setTimeout(() => {
-          new LoginFailedMessage(this.client, {
-            //reason: "New update avaliable, update at: dsc.gg/erikclash",
-            reason: "Invalid credentials, please clear app data",
-          }).send();
-        }, 2000);
-        return;
-      }
+    } else if (!databaseuser) {
+      databaseuser = global.database.create({
+        id: {
+          high: this.data.HighID,
+          low: this.data.LowID,
+        },
+        token: this.data.Token || generateToken(),
+        username: "",
+        deck: [
+          26000026, 26000015, 26000012, 26000000, 26000004, 26000005, 26000006,
+          26000007,
+        ],
+      });
+    } else if (this.data.Token && databaseuser.token !== this.data.Token) {
+      databaseuser = global.database.update(databaseuser._systemid, {
+        token: this.data.Token,
+      });
     }
 
     this.client.user = databaseuser;
     console.log(this.client.user);
-
-    if (this.data.resourceSha !== "6761ebec26bc721f818c74565f6af8784b269e67") {
-      setTimeout(() => {
-        new LoginFailedMessage(this.client, {
-          //reason: "New update avaliable, update at: dsc.gg/erikclash",
-          reason: "patch",
-        }).send();
-      }, 2000);
-      return;
-    }
+    this.client.loginPassed = true;
 
     setTimeout(() => {
       new LoginOkMessage(this.client).send();

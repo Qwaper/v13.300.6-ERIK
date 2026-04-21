@@ -93,6 +93,7 @@ server.on("connection", (client) => {
   // CLIENT STATE
   // =============================
   client.isAuthenticated = false;
+  client.loginPassed = false;
   client.packetCount = 0;
   client.lastPacketReset = Date.now();
   client.packetizer = new Packetizer(client);
@@ -174,9 +175,14 @@ server.on("connection", (client) => {
           await packet.process();
 
           if (message.id === LOGIN_PACKET_ID) {
-            client.isAuthenticated = true;
-            clearTimeout(loginTimeout);
-            client.log("Authenticated");
+            if (client.loginPassed && client.user) {
+              client.isAuthenticated = true;
+              clearTimeout(loginTimeout);
+              client.log("Authenticated");
+            } else {
+              client.log("Login failed");
+              client.destroy();
+            }
           }
         } catch (e) {
           console.error(e);
