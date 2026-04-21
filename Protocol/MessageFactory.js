@@ -1,32 +1,37 @@
-const fs = require('fs')
+const fs = require("fs");
+const path = require("path");
 
 class MessageFactory {
-  constructor () {
-    this.packets = {}
+  constructor() {
+    this.packets = {};
 
-    fs.readdir('./Protocol/Messages/Client', (err, files) => {
-      if (err)console.log(err)
-      files.forEach(e => {
-        try{
-          const Packet = require(`./Messages/Client/${e.replace('.js', '')}`)
-          const packetClass = new Packet()
+    const messagesDir = path.join(__dirname, "Messages", "Client");
+    const files = fs
+      .readdirSync(messagesDir)
+      .filter((file) => file.endsWith(".js"));
 
-          this.packets[packetClass.id] = Packet
-        }catch(err){
-          console.log(`[SERVER] >> A wild error while initializing "${e.replace(".js", "")}" packet!`)
-          console.log(err)
-        }
-      })
-    })
+    for (const file of files) {
+      const packetName = file.replace(".js", "");
+      try {
+        const Packet = require(path.join(messagesDir, packetName));
+        const packetClass = new Packet();
+        this.packets[packetClass.id] = Packet;
+      } catch (err) {
+        console.log(
+          `[SERVER] >> A wild error while initializing "${packetName}" packet!`,
+        );
+        console.log(err);
+      }
+    }
   }
 
-  handle (id) {
-    return this.packets[id]
-  };
+  handle(id) {
+    return this.packets[id];
+  }
 
-  getPackets () {
-    return Object.keys(this.packets)
+  getPackets() {
+    return Object.keys(this.packets);
   }
 }
 
-module.exports = MessageFactory
+module.exports = MessageFactory;
