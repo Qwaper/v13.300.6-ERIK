@@ -95,6 +95,7 @@ server.on("connection", (client) => {
   client.isAuthenticated = false;
   client.packetCount = 0;
   client.lastPacketReset = Date.now();
+  client.packetizer = new Packetizer(client);
 
   // Add to global list safely
   global.connectedPlayers.push(client);
@@ -117,6 +118,11 @@ server.on("connection", (client) => {
 
   client.on("data", async (data) => {
     // 🔥 Max packet size protection
+    if (data.length > MAX_PACKET_SIZE) {
+      banIP(ip, "Packet too large");
+      client.destroy();
+      return;
+    }
 
     // 🔥 Rate limit per second
     if (Date.now() - client.lastPacketReset > 1000) {
@@ -132,11 +138,7 @@ server.on("connection", (client) => {
       return;
     }
 
-    let packetizer = new Packetizer();
-
-    //packetizedData = data;
-
-    packetizer.packetize(data, async (packetizedData) => {
+    client.packetizer.packetize(data, async (packetizedData) => {
       let message = {
         id: packetizedData.readUInt16BE(0),
         len: packetizedData.readUIntBE(2, 3),
