@@ -365,13 +365,7 @@ class ByteStream {
 
     let crypted = this.buffer; //crypto.encrypt(this.id, this.buffer);
 
-    this.client.write(
-      Buffer.concat([
-        header,
-        crypted,
-        Buffer.from([0xff, 0xff, 0x0, 0x0, 0x0, 0x0, 0x0]),
-      ]),
-    );
+    this.client.write(Buffer.concat([header, crypted]));
     this.client.log(`Packet ${this.id} (${this.constructor.name}) was sent.`);
   }
 }

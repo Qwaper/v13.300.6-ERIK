@@ -1,17 +1,20 @@
 const fs = require("fs");
+const path = require("path");
 
 class CommandManager {
   constructor() {
     this.commands = {};
 
-    fs.readdir("./Protocol/Commands/Client", (err, files) => {
-      if (err) console.log(err);
-      files.forEach((e) => {
-        const Command = require(`./Commands/Client/${e.replace(".js", "")}`);
-        const commandClass = new Command();
+    const commandsDir = path.join(__dirname, "Commands", "Client");
+    const files = fs
+      .readdirSync(commandsDir)
+      .filter((file) => file.endsWith(".js"));
 
-        this.commands[commandClass.commandID] = Command;
-      });
+    files.forEach((e) => {
+      const Command = require(path.join(commandsDir, e.replace(".js", "")));
+      const commandClass = new Command();
+
+      this.commands[commandClass.commandID] = Command;
     });
   }
 
